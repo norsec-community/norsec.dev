@@ -1,0 +1,229 @@
+body,
+html {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: #C4C4C4;
+}
+
+.navbar {
+    width: 100%;
+    background-color: white;
+    display: grid;
+    height: 10vh;
+    margin: auto; 
+    justify-content: center;
+    align-items: center;
+}
+
+.logo {
+    max-height: 10vh;
+}
+
+
+/*-------------Main section-----------*/
+.mainSection {
+    background-color: #2A3F54;
+    position: relative;
+    overflow: hidden;
+    color: white;
+    padding-bottom: 10vh;
+    
+}
+
+.mainSection > div {
+    max-width: 1300px;
+    display:  flex;
+    flex-flow: row;
+    height: 100%;
+    margin: 13vh auto;
+    justify-content: space-between;
+}
+.mainSection > div > div{
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-flow: column;
+}
+
+
+.mainTextArea > div >h1, p, a{
+    max-width: 25vw;
+}
+
+.mainTextArea > div> h1 > span {
+    color: #BC8EB5; 
+}
+.mainTextArea > div > h1 {
+    font-size: xx-large;
+}
+.mainTextArea > div > a{
+    left: 0;
+    padding: 15px;
+    background-color: #5D5FEF;
+    color: white;
+    border-radius: 6px;
+    font-weight: bold;
+    border-color:  #5D5FEF;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    margin-top: 0.5em;
+    display: inline-block;
+    text-decoration: none;
+    
+}
+
+.mainTextArea > div > a:hover{
+    left: 0;
+    padding: 15px;
+    background-color: #7c7eec;
+    color: white;
+    border-radius: 6px;
+    font-weight: bold;
+    border-color:  #7c7eec;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    
+}
+
+.mainSection:before { 
+    content: '';
+    position: absolute;
+    left: -50%;
+    width: 160%; 
+    height: 200%; 
+    background-color: #C4C4C4;
+    top: 78%;
+    -webkit-transform: rotate(6deg);
+    -moz-transform: rotate(6deg);
+    transform: rotate(6deg);
+}
+
+.discordIframe{
+    height: 50vh;
+    width: 34vh;
+    border: #2A3F54;
+}
+
+/*-------------NorSec jobseeker-----------*/
+.jobSeeker {
+    background-color: #C4C4C4;
+    color: black;
+    display: flex;
+    flex-direction: row;
+    max-width: 1300px;
+    margin: auto;
+    padding-bottom: 10vh;
+}
+
+.jobSeeker > div {
+    width: 50%;
+    display: flex;
+    align-items: center;
+    flex-flow: column;
+
+}
+.jobSeeker >  div > img {
+    width: 80%;
+}
+.jobSeeker > div  >div > h1 {
+    font-size: xx-large;
+}
+
+/*----------Footer ---------------*/
+.footer > div:first-child {
+    width: 100%;
+    height: 10vh;
+    background-color: #5A6E86;
+    position: relative;
+    margin: auto;
+}
+
+.footer > div  {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    color: white;
+}
+
+.footer > div > div{
+    width: 100%;
+}
+.footer > div > div:nth-of-type(1) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5em;
+}
+
+.footer > div > div:nth-of-type(2) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin-right: 0.5em;
+}
+
+
+.footer > div:nth-of-type(2) {
+    width: 100%;
+    height: 5vh;
+    background-color: #C4C4C4;
+}
+
+/* -------------- 1024 -------------*/
+@media only screen and (max-width: 1024px) {
+    .mainTextArea > div > h1 {
+        font-size: 1.5em;
+    }
+  }
+
+  @media only screen and (max-width: 900px) {
+    .mainTextArea > div >h1, p, a{
+        max-width: none;
+        margin-left: 1em;
+    }
+    
+  }
+
+  @media only screen and (max-width: 710px) {
+    .mainTextArea > div >h1, p, a{
+        max-width: 90vw;
+    }
+    .mainSection > div {
+        flex-wrap: wrap;
+    }
+    .mainSection > div > div {
+        margin-bottom: 11vh;
+    }
+    .discordIframe{
+        height: 50vh;
+        width: 90vw;
+        border: #2A3F54;
+    }
+    .jobSeeker {
+        flex-wrap: wrap-reverse;
+    }
+    .jobSeeker > div {
+        width: 100%;
+    }
+    .mainSection {
+        padding-bottom: 0;
+        
+    }
+    .mainSection:before { 
+        top: 90%;
+    }
+    
+    
+  }
+
+
+
+
+
+
+
+
+
+
+
