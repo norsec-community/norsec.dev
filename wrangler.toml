@@ -1,6 +1,9 @@
 [build]
-command = "npm run build"
+command = "npm ci && npm run build"
 cwd = "."
 
 [build.upload]
 dir = "dist/public"
+
+[env.production]
+NODE_VERSION = "18"
