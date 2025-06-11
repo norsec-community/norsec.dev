@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 20 14.3% 4.1%;
+  --muted: 60 4.8% 95.9%;
+  --muted-foreground: 25 5.3% 44.7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 14.3% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 14.3% 4.1%;
+  --border: 20 5.9% 90%;
+  --input: 20 5.9% 90%;
+  --primary: 207 90% 54%;
+  --primary-foreground: 211 100% 99%;
+  --secondary: 60 4.8% 95.9%;
+  --secondary-foreground: 24 9.8% 10%;
+  --accent: 60 4.8% 95.9%;
+  --accent-foreground: 24 9.8% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 20 14.3% 4.1%;
+  --radius: 0.5rem;
+  
+  /* Norsec original site colors */
+  --norsec-primary: 244 83% 61%; /* #5D5FEF - Purple blue */
+  --norsec-secondary: 244 83% 71%; /* #7c7eec - Lighter purple blue */
+  --norsec-accent: 315 27% 64%; /* #BC8EB5 - Pink accent */
+  --norsec-green: 142 76% 36%; /* #00D166 */
+  --norsec-dark: 210 18% 25%; /* #2A3F54 - Main dark blue */
+  --norsec-darker: 210 18% 20%; /* #1f3245 - Darker blue */
+  --norsec-light: 0 0% 77%; /* #C4C4C4 - Light gray background */
+  --norsec-footer: 210 18% 40%; /* #5A6E86 - Footer color */
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 207 90% 54%;
+  --primary-foreground: 211 100% 99%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 240 4.9% 83.9%;
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-inter antialiased;
+    background-color: hsl(var(--norsec-light));
+    color: black;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer utilities {
+  .font-inter {
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .gradient-bg {
+    background: linear-gradient(135deg, hsl(var(--norsec-primary)) 0%, hsl(var(--norsec-secondary)) 100%);
+  }
+  
+  .card-hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px hsla(var(--norsec-primary), 0.2);
+  }
+  
+  .nav-link {
+    transition: color 0.3s ease;
+  }
+  
+  .btn-norsec {
+    background: linear-gradient(135deg, hsl(var(--norsec-primary)) 0%, hsl(var(--norsec-secondary)) 100%);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-norsec:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px hsla(var(--norsec-primary), 0.3);
+  }
+  
+  .pulse-animation {
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  
+  .bg-norsec-primary {
+    background-color: hsl(var(--norsec-primary));
+  }
+  
+  .bg-norsec-secondary {
+    background-color: hsl(var(--norsec-secondary));
+  }
+  
+  .bg-norsec-green {
+    background-color: hsl(var(--norsec-green));
+  }
+  
+  .bg-norsec-dark {
+    background-color: hsl(var(--norsec-dark));
+  }
+  
+  .bg-norsec-darker {
+    background-color: hsl(var(--norsec-darker));
+  }
+  
+  .text-norsec-primary {
+    color: hsl(var(--norsec-primary));
+  }
+  
+  .text-norsec-light {
+    color: hsl(var(--norsec-light));
+  }
+  
+  .text-norsec-green {
+    color: hsl(var(--norsec-green));
+  }
+  
+  .border-norsec-dark {
+    border-color: hsl(var(--norsec-dark));
+  }
+  
+  .hover\:text-norsec-primary:hover {
+    color: hsl(var(--norsec-primary));
+  }
+  
+  .hover\:bg-norsec-darker:hover {
+    background-color: hsl(var(--norsec-darker));
+  }
+  
+  .bg-norsec-footer {
+    background-color: hsl(var(--norsec-footer));
+  }
+  
+  .bg-norsec-accent {
+    background-color: hsl(var(--norsec-accent));
+  }
+  
+  .text-norsec-accent {
+    color: hsl(var(--norsec-accent));
+  }
+
+  /* Mobile responsive styles */
+  @media only screen and (max-width: 1024px) {
+    .hero-title {
+      font-size: 1.5rem;
+    }
+  }
+
+  @media only screen and (max-width: 900px) {
+    .hero-content {
+      max-width: none;
+      margin-left: 1rem;
+    }
+  }
+
+  @media only screen and (max-width: 710px) {
+    .hero-content {
+      max-width: 90vw;
+    }
+    .hero-flex {
+      flex-wrap: wrap;
+    }
+    .hero-section {
+      margin-bottom: 11vh;
+    }
+    .discord-iframe {
+      height: 50vh;
+      width: 90vw;
+    }
+    .jobseeker-flex {
+      flex-wrap: wrap-reverse;
+    }
+    .jobseeker-item {
+      width: 100%;
+    }
+    .main-section {
+      padding-bottom: 0;
+    }
+    .slanted-bg {
+      top: 90%;
+    }
+  }
+}
