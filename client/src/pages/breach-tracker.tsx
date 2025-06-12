@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { format, parseISO, isValid } from "date-fns";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,11 +42,19 @@ export default function BreachTracker() {
     return types;
   }, [breaches]);
 
-  // Extract unique years from the data
+  // Extract unique years from the data (now using ISO dates)
   const years = useMemo(() => {
     if (!breaches || !Array.isArray(breaches)) return [];
     const yearList = breaches
-      .map((breach: BreachEvent) => breach.date)
+      .map((breach: BreachEvent) => {
+        if (!breach.date) return null;
+        try {
+          const parsedDate = parseISO(breach.date);
+          return isValid(parsedDate) ? parsedDate.getFullYear().toString() : null;
+        } catch {
+          return null;
+        }
+      })
       .filter((year): year is string => Boolean(year))
       .reduce((acc, year) => {
         if (!acc.includes(year)) acc.push(year);
@@ -61,7 +70,20 @@ export default function BreachTracker() {
     
     return breaches.filter((breach: BreachEvent) => {
       const typeMatch = selectedTypeFilter === "all" || breach.type?.toLowerCase() === selectedTypeFilter;
-      const yearMatch = selectedYearFilter === "all" || breach.date === selectedYearFilter;
+      
+      // Year filtering now works with ISO dates
+      let yearMatch = selectedYearFilter === "all";
+      if (!yearMatch && breach.date) {
+        try {
+          const parsedDate = parseISO(breach.date);
+          if (isValid(parsedDate)) {
+            yearMatch = parsedDate.getFullYear().toString() === selectedYearFilter;
+          }
+        } catch {
+          // If parsing fails, don't match
+        }
+      }
+      
       return typeMatch && yearMatch;
     });
   }, [breaches, selectedTypeFilter, selectedYearFilter]);
@@ -183,9 +205,15 @@ export default function BreachTracker() {
                   All Years ({breaches && Array.isArray(breaches) ? breaches.length : 0})
                 </Button>
                 {years.map((year) => {
-                  const count = breaches && Array.isArray(breaches) ? breaches.filter((breach: BreachEvent) => 
-                    breach.date === year
-                  ).length : 0;
+                  const count = breaches && Array.isArray(breaches) ? breaches.filter((breach: BreachEvent) => {
+                    if (!breach.date) return false;
+                    try {
+                      const parsedDate = parseISO(breach.date);
+                      return isValid(parsedDate) && parsedDate.getFullYear().toString() === year;
+                    } catch {
+                      return false;
+                    }
+                  }).length : 0;
                   
                   return (
                     <Button
@@ -271,7 +299,16 @@ export default function BreachTracker() {
                     {breach.date && (
                       <div className="flex items-center text-gray-600">
                         <Calendar className="mr-2 h-4 w-4" />
-                        <span className="text-sm">{breach.date}</span>
+                        <span className="text-sm">
+                          {(() => {
+                            try {
+                              const parsedDate = parseISO(breach.date);
+                              return isValid(parsedDate) ? format(parsedDate, 'MMM d, yyyy') : breach.date;
+                            } catch {
+                              return breach.date;
+                            }
+                          })()}
+                        </span>
                       </div>
                     )}
                     
@@ -279,6 +316,12 @@ export default function BreachTracker() {
                       <div className="flex items-center text-gray-600">
                         <AlertTriangle className="mr-2 h-4 w-4" />
                         <span className="text-sm">{breach.type}</span>
+                      </div>
+                    )}
+                    
+                    {breach.description && (
+                      <div className="text-sm text-gray-600">
+                        <p className="line-clamp-2">{breach.description}</p>
                       </div>
                     )}
                     
