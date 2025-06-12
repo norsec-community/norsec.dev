@@ -28,6 +28,32 @@ export default function BreachTracker() {
     enabled: true
   });
 
+  // Format date with appropriate precision based on likely original data
+  const formatDateWithPrecision = (dateString: string): string => {
+    try {
+      const parsedDate = parseISO(dateString);
+      if (!isValid(parsedDate)) return dateString;
+      
+      const day = parsedDate.getDate();
+      const month = parsedDate.getMonth();
+      
+      // If July 1st, likely was year-only data - show just year
+      if (month === 6 && day === 1) {
+        return parsedDate.getFullYear().toString();
+      }
+      
+      // If 1st of any month, likely was year-month data - show "Month Year"
+      if (day === 1) {
+        return format(parsedDate, 'MMM yyyy');
+      }
+      
+      // Otherwise, show full date
+      return format(parsedDate, 'MMM d, yyyy');
+    } catch {
+      return dateString;
+    }
+  };
+
   // Extract unique incident types from the data
   const incidentTypes = useMemo(() => {
     if (!breaches || !Array.isArray(breaches)) return [];
@@ -300,14 +326,7 @@ export default function BreachTracker() {
                       <div className="flex items-center text-gray-600">
                         <Calendar className="mr-2 h-4 w-4" />
                         <span className="text-sm">
-                          {(() => {
-                            try {
-                              const parsedDate = parseISO(breach.date);
-                              return isValid(parsedDate) ? format(parsedDate, 'MMM d, yyyy') : breach.date;
-                            } catch {
-                              return breach.date;
-                            }
-                          })()}
+                          {formatDateWithPrecision(breach.date)}
                         </span>
                       </div>
                     )}

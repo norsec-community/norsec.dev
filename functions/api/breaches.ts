@@ -58,9 +58,16 @@ function normalizeToISODate(dateString: string): string {
       parsedDate = new Date(trimmedDate);
     }
     
+    // Year-month format: 2025-06 or yyyy-MM
+    else if (/^\d{4}-\d{2}$/.test(trimmedDate)) {
+      // Add first day of month for parsing: 2025-06 becomes 2025-06-01
+      parsedDate = new Date(`${trimmedDate}-01`);
+    }
+    
     // Year only format: 2025
     else if (/^\d{4}$/.test(trimmedDate)) {
-      parsedDate = new Date(parseInt(trimmedDate), 0, 1); // January 1st of that year
+      // Use middle of year (July 1st) for better chronological approximation
+      parsedDate = new Date(parseInt(trimmedDate), 6, 1); // July 1st of that year
     }
     
     // US formats: Oct 6, 2025 or October 6, 2025
