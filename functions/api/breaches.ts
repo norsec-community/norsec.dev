@@ -261,16 +261,49 @@ export async function onRequest(context: any): Promise<Response> {
           }
         }
         
-        // Build description from available fields
+        // Build description from available fields, but filter out data that looks like other structured info
         const descriptionParts = [
           additionalInfo,
           possibleDescription,
           col6,
           col7,
           col8
-        ].filter(part => part && part.length > 0);
+        ].filter(part => {
+          if (!part || part.length === 0) return false;
+          
+          // Skip parts that look like months
+          const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 
+                             'july', 'august', 'september', 'october', 'november', 'december',
+                             'jan', 'feb', 'mar', 'apr', 'may', 'jun', 
+                             'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+          if (monthNames.includes(part.toLowerCase().trim())) return false;
+          
+          // Skip parts that look like URLs or sources (these should go in source field)
+          if (part.includes('hxxp') || part.includes('http') || part.includes('www.')) return false;
+          
+          // Skip very short parts (likely codes or IDs)
+          if (part.trim().length < 3) return false;
+          
+          // Skip parts that are just "Other" or similar generic terms
+          if (['other', 'unknown', 'n/a', 'na', '-'].includes(part.toLowerCase().trim())) return false;
+          
+          return true;
+        });
         
         const description = descriptionParts.length > 0 ? descriptionParts.join(' | ') : '';
+        
+        // Enhanced source handling - check multiple columns for source URLs
+        let enhancedSource = validSource;
+        if (!enhancedSource) {
+          // Look for URLs in other columns if source column is empty
+          const allColumns = [additionalInfo, possibleDescription, col6, col7, col8];
+          for (const col of allColumns) {
+            if (col && (col.includes('hxxp') || col.includes('http') || col.includes('www.'))) {
+              enhancedSource = col.trim();
+              break;
+            }
+          }
+        }
         
         return {
           organization,
@@ -278,7 +311,7 @@ export async function onRequest(context: any): Promise<Response> {
           type,
           impact: impact || '',
           description: description || '',
-          source: validSource
+          source: enhancedSource || validSource
         };
       })
       .filter((breach): breach is Breach => breach !== null)
