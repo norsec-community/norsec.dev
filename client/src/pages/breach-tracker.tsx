@@ -338,7 +338,7 @@ export default function BreachTracker() {
                       </div>
                     )}
                     
-                    {breach.description && (
+                    {breach.description && breach.description.trim() !== '' && (
                       <div className="text-sm text-gray-600">
                         <p className="line-clamp-2">{breach.description}</p>
                       </div>

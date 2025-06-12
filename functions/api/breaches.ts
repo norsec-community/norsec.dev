@@ -233,8 +233,16 @@ export async function onRequest(context: any): Promise<Response> {
         // Log first few rows for debugging column structure
         if (index < 3) {
           console.log(`Row ${index + 3}:`, { 
-            organization, additionalInfo, type, possibleDescription, 
-            date, impact, col6, col7, col8, rawSource 
+            col0_organization: organization, 
+            col1_additionalInfo: additionalInfo, 
+            col2_type: type, 
+            col3_possibleDescription: possibleDescription, 
+            col4_date: date, 
+            col5_impact: impact, 
+            col6: col6, 
+            col7: col7, 
+            col8: col8, 
+            col9_rawSource: rawSource 
           });
         }
         
@@ -261,7 +269,23 @@ export async function onRequest(context: any): Promise<Response> {
           }
         }
         
-        // Build description from available fields, but filter out data that looks like other structured info
+        // Based on the data pattern, let's be more specific about what we include
+        // Focus on industry sector only and filter out ransomware group names
+        const industryKeywords = [
+          'logistics', 'hospitality', 'healthcare', 'finance', 'education', 'government',
+          'manufacturing', 'retail', 'technology', 'energy', 'transportation', 'agriculture',
+          'construction', 'media', 'telecommunications', 'consulting', 'legal', 'real estate',
+          'insurance', 'banking', 'automotive', 'pharmaceutical', 'food', 'aviation'
+        ];
+        
+        // Ransomware groups to exclude from description
+        const ransomwareGroups = [
+          'dragonforce', 'lockbit', 'alphv', 'blackcat', 'conti', 'revil', 'sodinokibi',
+          'ryuk', 'maze', 'egregor', 'netwalker', 'cuba', 'hive', 'grief', 'quantum',
+          'blackmatter', 'darkside', 'avaddon', 'babuk', 'clop', 'doppelpaymer',
+          'ragnar', 'snatch', 'tity', 'medusa', 'play', 'royal', 'karakurt'
+        ];
+        
         const descriptionParts = [
           additionalInfo,
           possibleDescription,
@@ -271,23 +295,33 @@ export async function onRequest(context: any): Promise<Response> {
         ].filter(part => {
           if (!part || part.length === 0) return false;
           
-          // Skip parts that look like months
+          const lowerPart = part.toLowerCase().trim();
+          
+          // Skip month names
           const monthNames = ['january', 'february', 'march', 'april', 'may', 'june', 
                              'july', 'august', 'september', 'october', 'november', 'december',
                              'jan', 'feb', 'mar', 'apr', 'may', 'jun', 
                              'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-          if (monthNames.includes(part.toLowerCase().trim())) return false;
+          if (monthNames.includes(lowerPart)) return false;
           
-          // Skip parts that look like URLs or sources (these should go in source field)
+          // Skip ransomware group names
+          if (ransomwareGroups.includes(lowerPart)) return false;
+          
+          // Skip URLs
           if (part.includes('hxxp') || part.includes('http') || part.includes('www.')) return false;
           
-          // Skip very short parts (likely codes or IDs)
-          if (part.trim().length < 3) return false;
+          // Skip very short parts or numbers
+          if (part.trim().length < 3 || /^\d+$/.test(part.trim())) return false;
           
-          // Skip parts that are just "Other" or similar generic terms
-          if (['other', 'unknown', 'n/a', 'na', '-'].includes(part.toLowerCase().trim())) return false;
+          // Skip generic terms
+          if (['other', 'unknown', 'n/a', 'na', '-', 'and'].includes(lowerPart)) return false;
           
-          return true;
+          // Prioritize industry terms
+          const hasIndustryKeyword = industryKeywords.some(keyword => 
+            lowerPart.includes(keyword)
+          );
+          
+          return hasIndustryKeyword || part.trim().length > 5; // Keep longer descriptive text
         });
         
         const description = descriptionParts.length > 0 ? descriptionParts.join(' | ') : '';
