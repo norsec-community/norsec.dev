@@ -165,13 +165,14 @@ export default function CalendarPage() {
         ) : events && Array.isArray(events) && events.length > 0 ? (
           <div className="space-y-8">
             {viewMode === 'calendar' ? (
-              <div className="flex flex-col lg:flex-row gap-8 justify-center">
+              <div className="flex flex-col xl:flex-row gap-8 justify-center items-start">
                 {/* Calendar Component */}
-                <div className="flex justify-center">
+                <div className="flex justify-center w-full xl:w-auto">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
+                    numberOfMonths={2}
                     modifiers={{
                       hasEvents: getDatesWithEvents()
                     }}
@@ -184,7 +185,7 @@ export default function CalendarPage() {
                 
                 {/* Events for Selected Date */}
                 {selectedDate && (
-                  <div className="max-w-md">
+                  <div className="max-w-md w-full xl:w-auto flex-shrink-0">
                     <h3 className="text-lg font-semibold mb-4 text-norsec-dark">
                       Events for {format(selectedDate, 'MMMM d, yyyy')}
                     </h3>

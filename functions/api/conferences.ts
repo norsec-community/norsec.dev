@@ -18,7 +18,7 @@ interface ApiResponse<T> {
 }
 
 const CACHE_KEY = "conferences_data";
-const CACHE_TTL = 3600; // 1 hour in seconds
+const CACHE_TTL = 1800; // 30 minutes in seconds for more frequent updates
 
 // Date normalization function to convert various formats to ISO yyyy-MM-dd
 function normalizeToISODate(dateString: string): string {
@@ -33,44 +33,37 @@ function normalizeToISODate(dateString: string): string {
   
   let parsedDate: Date | null = null;
   
-  // Try various parsing approaches
+  // Try various parsing approaches - prioritize EU format since that's what's in the spreadsheet
   try {
-    // US formats: Oct 6, 2025 or October 6, 2025
-    const usMonthMatch = trimmedDate.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})$/i);
-    if (usMonthMatch) {
-      parsedDate = new Date(`${usMonthMatch[1]} ${usMonthMatch[2]}, ${usMonthMatch[3]}`);
-    }
-    
-    // European dot format: 22.06.2025 or 6.10.2025
-    else if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(trimmedDate)) {
+    // European dot format (primary): 22.06.2025 or 6.10.2025 (dd.MM.yyyy)
+    if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(trimmedDate)) {
       const [day, month, year] = trimmedDate.split('.');
       parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     }
     
-    // European slash format: 22/06/2025 or 6/10/2025  
+    // European slash format: 22/06/2025 or 6/10/2025 (dd/MM/yyyy)
     else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(trimmedDate)) {
       const [day, month, year] = trimmedDate.split('/');
       parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     }
     
-    // US slash format: 10/06/2025 or 10/6/2025
-    else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(trimmedDate)) {
-      // This is ambiguous - could be MM/dd/yyyy or dd/MM/yyyy
-      // We'll assume MM/dd/yyyy for US format
-      const [month, day, year] = trimmedDate.split('/');
-      parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    }
-    
-    // Dash formats: MM-dd-yyyy or dd-MM-yyyy
+    // European dash format: 22-06-2025 or 6-10-2025 (dd-MM-yyyy)
     else if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(trimmedDate)) {
-      // Assume MM-dd-yyyy format
-      const [month, day, year] = trimmedDate.split('-');
+      const [day, month, year] = trimmedDate.split('-');
       parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     }
     
     // ISO with time: 2025-10-06T00:00:00 or 2025-10-06 00:00:00
     else if (/^\d{4}-\d{2}-\d{2}[T\s]/.test(trimmedDate)) {
       parsedDate = new Date(trimmedDate);
+    }
+    
+    // US formats: Oct 6, 2025 or October 6, 2025
+    else if (/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})$/i.test(trimmedDate)) {
+      const usMonthMatch = trimmedDate.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})$/i);
+      if (usMonthMatch) {
+        parsedDate = new Date(`${usMonthMatch[1]} ${usMonthMatch[2]}, ${usMonthMatch[3]}`);
+      }
     }
     
     // Try native Date constructor as fallback
@@ -136,7 +129,7 @@ export async function onRequest(context: any): Promise<Response> {
     }
 
     const spreadsheetId = "1i3ltEo2GhEiAFWdQOOqp7DY0LZ9GRwKknie5FKGdB3k";
-    const range = "A:F";
+    const range = "Conferences!A:Z"; // Target specific sheet and get all columns
     const apiKey = context.env.GOOGLE_SHEETS_API_KEY;
     
     if (!apiKey) {
@@ -180,7 +173,10 @@ export async function onRequest(context: any): Promise<Response> {
     const data = await response.json();
     const rows = data.values || [];
     
+    console.log(`Fetched ${rows.length} rows from 'Conferences' sheet`);
+    
     if (rows.length === 0) {
+      console.warn("No data found in 'Conferences' sheet");
       const emptyResponse: Conference[] = [];
       
       // Cache empty result for shorter time
@@ -195,9 +191,20 @@ export async function onRequest(context: any): Promise<Response> {
       });
     }
     
+    if (rows.length === 1) {
+      console.warn("Only header row found in 'Conferences' sheet");
+    }
+    
+    // Log header row for debugging
+    if (rows.length > 0) {
+      console.log("Header row:", rows[0]);
+    }
+    
     // Validate and sanitize data
     const conferences: Conference[] = rows.slice(1)
-      .map((row: string[]) => {
+      .map((row: string[], index: number) => {
+        // Current column mapping based on original implementation:
+        // A(0): name, B(1): website, C(2): details, D(3): date, E(4): duration, F(5): location
         const name = (row[0] || "").trim();
         const website = (row[1] || "").trim();
         const date = (row[3] || "").trim();
@@ -205,8 +212,18 @@ export async function onRequest(context: any): Promise<Response> {
         const duration = (row[4] || "").trim();
         const details = (row[2] || "").trim();
         
+        // Log first few rows for debugging
+        if (index < 3) {
+          console.log(`Row ${index + 2}:`, { name, website, date, location, duration, details });
+        }
+        
         // Validate required fields
-        if (!name) return null;
+        if (!name) {
+          if (index < 10) { // Only log first 10 empty rows to avoid spam
+            console.log(`Skipping row ${index + 2}: missing name`);
+          }
+          return null;
+        }
         
         // Sanitize website URL
         let validWebsite = "";
@@ -229,6 +246,8 @@ export async function onRequest(context: any): Promise<Response> {
         };
       })
       .filter((conf): conf is Conference => conf !== null);
+    
+    console.log(`Successfully processed ${conferences.length} conferences from ${rows.length - 1} data rows`);
     
     // Cache the results
     const cacheData = {
