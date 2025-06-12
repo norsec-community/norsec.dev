@@ -28,26 +28,26 @@ export default function CalendarPage() {
     enabled: true
   });
 
-  // Parse and prepare event data
-  const processedEvents = events?.map((event: ConferenceEvent) => {
+  // Parse and prepare event data - API now returns ISO dates only
+  const processedEvents = (events as ConferenceEvent[] | undefined)?.map((event: ConferenceEvent) => {
     let parsedDate: Date | null = null;
     
-    // Try multiple date parsing approaches
-    if (event.date) {
-      // Try ISO format first
+    if (event.date && event.date.trim() !== '') {
       try {
         parsedDate = parseISO(event.date);
         if (!isValid(parsedDate)) {
-          parsedDate = new Date(event.date);
+          console.warn(`Invalid ISO date received from API: "${event.date}"`);
+          parsedDate = null;
         }
-      } catch {
-        parsedDate = new Date(event.date);
+      } catch (error) {
+        console.error(`Failed to parse ISO date: "${event.date}"`, error);
+        parsedDate = null;
       }
     }
     
     return {
       ...event,
-      parsedDate: isValid(parsedDate) ? parsedDate : null
+      parsedDate
     };
   }) || [];
 
@@ -190,7 +190,7 @@ export default function CalendarPage() {
                     </h3>
                     {getEventsForDate(selectedDate).length > 0 ? (
                       <div className="space-y-3">
-                        {getEventsForDate(selectedDate).map((event, index) => (
+                        {getEventsForDate(selectedDate).map((event: ConferenceEvent, index: number) => (
                           <Card key={index} className="">
                             <CardContent className="p-4">
                               <h4 className="font-semibold text-norsec-dark mb-2">{event.name}</h4>
@@ -237,7 +237,7 @@ export default function CalendarPage() {
             ) : (
               /* List View */
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {processedEvents.map((event, index) => (
+                {processedEvents.map((event: ConferenceEvent, index: number) => (
                   <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">

@@ -2,7 +2,7 @@ import { RateLimiter, API_RATE_LIMITS } from '../middleware/rate-limiter';
 
 interface Conference {
   name: string;
-  date: string;
+  date: string; // Always in ISO yyyy-MM-dd format
   location: string;
   website: string;
   description: string;
@@ -19,6 +19,78 @@ interface ApiResponse<T> {
 
 const CACHE_KEY = "conferences_data";
 const CACHE_TTL = 3600; // 1 hour in seconds
+
+// Date normalization function to convert various formats to ISO yyyy-MM-dd
+function normalizeToISODate(dateString: string): string {
+  if (!dateString || dateString.trim() === '') return '';
+  
+  const trimmedDate = dateString.trim();
+  
+  // If already in ISO format, return as-is
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmedDate)) {
+    return trimmedDate;
+  }
+  
+  let parsedDate: Date | null = null;
+  
+  // Try various parsing approaches
+  try {
+    // US formats: Oct 6, 2025 or October 6, 2025
+    const usMonthMatch = trimmedDate.match(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})$/i);
+    if (usMonthMatch) {
+      parsedDate = new Date(`${usMonthMatch[1]} ${usMonthMatch[2]}, ${usMonthMatch[3]}`);
+    }
+    
+    // European dot format: 22.06.2025 or 6.10.2025
+    else if (/^\d{1,2}\.\d{1,2}\.\d{4}$/.test(trimmedDate)) {
+      const [day, month, year] = trimmedDate.split('.');
+      parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    }
+    
+    // European slash format: 22/06/2025 or 6/10/2025  
+    else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(trimmedDate)) {
+      const [day, month, year] = trimmedDate.split('/');
+      parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    }
+    
+    // US slash format: 10/06/2025 or 10/6/2025
+    else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(trimmedDate)) {
+      // This is ambiguous - could be MM/dd/yyyy or dd/MM/yyyy
+      // We'll assume MM/dd/yyyy for US format
+      const [month, day, year] = trimmedDate.split('/');
+      parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    }
+    
+    // Dash formats: MM-dd-yyyy or dd-MM-yyyy
+    else if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(trimmedDate)) {
+      // Assume MM-dd-yyyy format
+      const [month, day, year] = trimmedDate.split('-');
+      parsedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    }
+    
+    // ISO with time: 2025-10-06T00:00:00 or 2025-10-06 00:00:00
+    else if (/^\d{4}-\d{2}-\d{2}[T\s]/.test(trimmedDate)) {
+      parsedDate = new Date(trimmedDate);
+    }
+    
+    // Try native Date constructor as fallback
+    else {
+      parsedDate = new Date(trimmedDate);
+    }
+    
+    // Validate the parsed date
+    if (parsedDate && !isNaN(parsedDate.getTime())) {
+      // Format as ISO date string (yyyy-MM-dd)
+      return parsedDate.toISOString().split('T')[0];
+    }
+  } catch (error) {
+    console.error(`Failed to parse date: "${trimmedDate}"`, error);
+  }
+  
+  // If all parsing fails, return empty string
+  console.warn(`Unable to normalize date: "${trimmedDate}"`);
+  return '';
+}
 
 export async function onRequest(context: any): Promise<Response> {
   const corsHeaders = {
@@ -149,7 +221,7 @@ export async function onRequest(context: any): Promise<Response> {
         
         return {
           name,
-          date,
+          date: normalizeToISODate(date),
           location,
           website: validWebsite,
           description: `${duration ? duration + ' days' : ''}${details ? ' - ' + details : ''}`.trim(),
