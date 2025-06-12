@@ -5,5 +5,24 @@ cwd = "."
 [build.upload]
 dir = "dist/public"
 
+# KV Namespaces for caching and rate limiting
+[[kv_namespaces]]
+binding = "CONFERENCE_CACHE"
+id = "47aac1758c7d48f79e39cb9247efc890"
+preview_id = "47aac1758c7d48f79e39cb9247efc890"
+
+[[kv_namespaces]]
+binding = "BREACH_CACHE"
+id = "079163c59d1f4f369e28f92259c39b45"
+preview_id = "079163c59d1f4f369e28f92259c39b45"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT_STORE"
+id = "0d6ed8f0fedc472d8a79fed28936b445"
+preview_id = "0d6ed8f0fedc472d8a79fed28936b445"
+
 [env.production]
 NODE_VERSION = "18"
+
+# Environment variables (add to Cloudflare dashboard)
+# GOOGLE_SHEETS_API_KEY = "your_google_sheets_api_key"
