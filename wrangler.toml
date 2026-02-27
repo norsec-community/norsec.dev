@@ -5,6 +5,10 @@ cwd = "."
 [build.upload]
 dir = "dist/public"
 
+# Cloudflare Pages Functions
+pages_build_output_dir = "dist/public"
+functions = "functions"
+
 # KV Namespaces for caching and rate limiting
 [[kv_namespaces]]
 binding = "CONFERENCE_CACHE"
